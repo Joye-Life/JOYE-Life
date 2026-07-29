@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="JOYE personal dashboard prototype." />
+  <title>JOYE Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <aside class="app-sidebar">
+    <a class="app-brand" href="index.html">JOYE<span>.</span></a>
+    <nav>
+      <button class="nav-item active" data-view="today">Today</button>
+      <button class="nav-item" data-view="money">Money</button>
+      <button class="nav-item" data-view="career">Career</button>
+      <button class="nav-item" data-view="goals">Goals</button>
+    </nav>
+    <div class="sidebar-foot"><span class="avatar">TJ</span><div><strong>Thomas</strong><small>Local prototype</small></div></div>
+  </aside>
+
+  <main class="app-main">
+    <header class="app-header">
+      <div><small id="today-date"></small><h1 id="view-title">Good afternoon, Thomas.</h1></div>
+      <div class="header-buttons"><button id="reset-demo" class="secondary-button">Reset demo</button><a class="secondary-button" href="index.html">Website</a></div>
+    </header>
+
+    <section class="view active" id="view-today">
+      <div class="summary-grid">
+        <article class="summary-card"><span>Weekly progress</span><strong id="progress-value">0%</strong><div class="progress-track"><i id="progress-bar"></i></div></article>
+        <article class="summary-card"><span>Available this paycheck</span><strong id="available-value">$0</strong><small id="available-note"></small></article>
+        <article class="summary-card"><span>Career momentum</span><strong id="career-value">0/0</strong><small>milestones complete</small></article>
+      </div>
+
+      <div class="content-grid">
+        <section class="app-card priorities-card">
+          <div class="card-head"><div><span class="eyebrow">TODAY</span><h2>Your priorities</h2></div><button id="open-task-modal" class="primary-button">Add priority</button></div>
+          <div id="task-list" class="task-list"></div>
+          <div id="empty-tasks" class="empty-state">No priorities yet. Add the one action that would make today count.</div>
+        </section>
+
+        <section class="app-card coach-card">
+          <span class="eyebrow">JOYE COACH</span><h2>Ask what to do next</h2>
+          <div id="coach-response" class="coach-response">Complete your highest-impact unfinished priority first. Small wins create momentum.</div>
+          <div class="coach-actions">
+            <button data-question="focus">What should I focus on?</button>
+            <button data-question="money">Can I spend extra money?</button>
+            <button data-question="career">How do I advance my career?</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="view" id="view-money">
+      <div class="page-intro"><span class="eyebrow">MONEY OS</span><h2>Give every paycheck a job.</h2><p>This prototype calculates a simple allocation and saves it in your browser.</p></div>
+      <section class="app-card form-card">
+        <form id="money-form" class="data-form">
+          <label>Paycheck amount<input id="paycheck" type="number" min="0" step="0.01" required></label>
+          <label>Essentials<input id="essentials" type="number" min="0" step="0.01" required></label>
+          <label>Debt payment<input id="debt" type="number" min="0" step="0.01" required></label>
+          <label>Savings<input id="savings" type="number" min="0" step="0.01" required></label>
+          <button class="primary-button" type="submit">Save allocation</button>
+        </form>
+        <div class="allocation-result">
+          <span>Flexible money remaining</span><strong id="flexible-result">$0</strong><p id="allocation-warning"></p>
+        </div>
+      </section>
+    </section>
+
+    <section class="view" id="view-career">
+      <div class="page-intro"><span class="eyebrow">CAREER OS</span><h2>Turn work into visible momentum.</h2><p>Track milestones and build a record of progress you can use in reviews and interviews.</p></div>
+      <section class="app-card">
+        <div class="card-head"><h2>Systems Engineer roadmap</h2><button id="add-milestone" class="primary-button">Add milestone</button></div>
+        <div id="milestone-list" class="milestone-list"></div>
+      </section>
+    </section>
+
+    <section class="view" id="view-goals">
+      <div class="page-intro"><span class="eyebrow">GOALS</span><h2>Make progress measurable.</h2><p>Set a target, current value, and deadline. JOYE converts it into a visible progress bar.</p></div>
+      <section class="app-card">
+        <form id="goal-form" class="goal-form">
+          <input id="goal-name" placeholder="Goal name" required>
+          <input id="goal-current" type="number" min="0" placeholder="Current" required>
+          <input id="goal-target" type="number" min="1" placeholder="Target" required>
+          <button class="primary-button" type="submit">Add goal</button>
+        </form>
+        <div id="goal-list" class="goal-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="task-modal">
+    <form id="task-form" method="dialog" class="modal-form">
+      <div class="card-head"><h2>Add a priority</h2><button type="button" id="close-task-modal" class="icon-close">×</button></div>
+      <label>Priority<input id="task-title" maxlength="100" required></label>
+      <label>Area<select id="task-area"><option>Career</option><option>Money</option><option>Health</option><option>Personal</option></select></label>
+      <button class="primary-button" type="submit">Add to today</button>
+    </form>
+  </dialog>
+  <script src="app.js"></script>
+</body>
+</html>
