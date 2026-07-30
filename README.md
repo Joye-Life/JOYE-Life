@@ -93,3 +93,15 @@ OPENAI_MODEL=gpt-5.6-luna
 
 ## v2.6 intelligence layer
 The dashboard now includes a live Today brief and section-specific Joye Insights. These work locally now and are designed to feed section context into the full AI service later.
+
+## Public beta access plan
+
+Before public launch, the current open **Try Dashboard** route should be replaced with an application-gated flow:
+
+1. Visitor submits a beta application.
+2. Application is stored with a `pending` status in Supabase.
+3. The Joye Life owner approves or declines the applicant.
+4. Approved users receive an invite link and can create an account.
+5. The dashboard requires an authenticated, approved account.
+
+This is intentionally documented but not enabled in v2.7 so product testing can continue without locking the owner out during development.

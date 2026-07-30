@@ -84,14 +84,15 @@
 
     <section class="view" id="view-money">
       <div class="page-intro"><span class="eyebrow">MONEY</span><h2>Make a plan that matches real life.</h2><p>Joye Life considers upcoming obligations, debt pressure, savings, and the buffer you say you need.</p></div><section class="section-intelligence" id="money-intelligence"></section>
-      <section class="app-card form-card">
-        <form id="money-form" class="data-form">
-          <label>Paycheck amount<input id="paycheck" type="number" min="0" step="0.01" required></label>
-          <label>Essentials due before next payday<input id="essentials" type="number" min="0" step="0.01" required></label>
-          <label>Planned debt payment<input id="debt" type="number" min="0" step="0.01" required></label>
-          <label>Planned savings<input id="savings" type="number" min="0" step="0.01" required></label>
-          <label>Minimum safety buffer<input id="buffer" type="number" min="0" step="0.01" required></label>
-          <button class="primary-button" type="submit">Save paycheck plan</button>
+      <section class="app-card form-card refined-card">
+        <form id="money-form" class="data-form refined-form">
+          <div class="form-heading"><span class="eyebrow">PAYCHECK PLAN</span><h3>Give every dollar a purpose</h3><p>Use the amounts that apply before your next payday.</p></div>
+          <label class="field-card"><span><b>Take-home pay</b><small>The amount deposited this pay period</small></span><input id="paycheck" type="number" min="0" step="0.01" required></label>
+          <label class="field-card"><span><b>Essential obligations</b><small>Housing, utilities, food, transportation, and minimum bills</small></span><input id="essentials" type="number" min="0" step="0.01" required></label>
+          <label class="field-card"><span><b>Debt progress</b><small>Anything above required minimum payments</small></span><input id="debt" type="number" min="0" step="0.01" required></label>
+          <label class="field-card"><span><b>Savings contribution</b><small>Emergency fund or another planned savings goal</small></span><input id="savings" type="number" min="0" step="0.01" required></label>
+          <label class="field-card"><span><b>Safety buffer</b><small>Money that should remain untouched</small></span><input id="buffer" type="number" min="0" step="0.01" required></label>
+          <button class="primary-button form-submit" type="submit">Update my paycheck plan</button>
         </form>
         <div class="allocation-result">
           <span>Flexible money after your buffer</span><strong id="flexible-result">$0</strong><p id="allocation-warning"></p>
@@ -101,21 +102,23 @@
 
     <section class="view" id="view-career">
       <div class="page-intro"><span class="eyebrow">CAREER</span><h2>Turn your goal into visible momentum.</h2><p>Track milestones and tell Joye Life where you want to go next.</p></div><section class="section-intelligence" id="career-intelligence"></section>
-      <section class="app-card">
-        <div class="card-head"><h2 id="career-roadmap-title">Career roadmap</h2><button id="add-milestone" class="primary-button">Add milestone</button></div>
-        <div id="milestone-list" class="milestone-list"></div>
+      <section class="app-card refined-card">
+        <div class="card-head"><div><span class="eyebrow">ROADMAP</span><h2 id="career-roadmap-title">Career roadmap</h2><p class="card-subcopy">Build evidence, not just a list of intentions.</p></div></div>
+        <form id="milestone-form" class="quick-add-form"><label><span>Next milestone</span><input id="milestone-title" maxlength="120" placeholder="Example: Complete a portfolio project" required></label><button class="primary-button" type="submit">Add to roadmap</button></form>
+        <div id="milestone-list" class="milestone-list polished-list"></div>
       </section>
     </section>
 
     <section class="view" id="view-goals">
       <div class="page-intro"><span class="eyebrow">GOALS</span><h2>Make progress measurable.</h2><p>Joye Life uses active goals and deadlines when deciding what deserves your attention.</p></div><section class="section-intelligence" id="goals-intelligence"></section>
-      <section class="app-card">
-        <form id="goal-form" class="goal-form">
-          <input id="goal-name" placeholder="Goal name" required>
-          <input id="goal-current" type="number" min="0" placeholder="Current" required>
-          <input id="goal-target" type="number" min="1" placeholder="Target" required>
-          <input id="goal-deadline" type="date">
-          <button class="primary-button" type="submit">Add goal</button>
+      <section class="app-card refined-card">
+        <div class="form-heading"><span class="eyebrow">NEW GOAL</span><h3>Define a finish line</h3><p>A clear target and deadline help Joye rank the next step.</p></div>
+        <form id="goal-form" class="goal-form refined-goal-form">
+          <label><span>What are you working toward?</span><input id="goal-name" placeholder="Build an emergency fund" required></label>
+          <label><span>Where are you now?</span><input id="goal-current" type="number" min="0" placeholder="0" required></label>
+          <label><span>What is the target?</span><input id="goal-target" type="number" min="1" placeholder="100" required></label>
+          <label><span>Target date <small>optional</small></span><input id="goal-deadline" type="date"></label>
+          <button class="primary-button" type="submit">Create goal</button>
         </form>
         <div id="goal-list" class="goal-list"></div>
       </section>
@@ -125,13 +128,13 @@
     <section class="view" id="view-week">
       <div class="page-intro"><span class="eyebrow">WEEKLY PLAN</span><h2>Decide what a good week looks like.</h2><p>Keep the week focused with three outcomes, one thing to avoid, and a short review.</p></div><section class="section-intelligence" id="week-intelligence"></section>
       <section class="app-card weekly-card">
-        <form id="weekly-form" class="weekly-form">
-          <label>Top outcome 1<input id="week-outcome-1" maxlength="120" placeholder="Finish one important deliverable"></label>
-          <label>Top outcome 2<input id="week-outcome-2" maxlength="120" placeholder="Make progress on a personal goal"></label>
-          <label>Top outcome 3<input id="week-outcome-3" maxlength="120" placeholder="Handle one task that has been creating stress"></label>
-          <label>What should you avoid this week?<input id="week-avoid" maxlength="160" placeholder="Taking on extra work before current priorities are finished"></label>
-          <label>Weekly notes<textarea id="week-notes" rows="5" maxlength="800" placeholder="What changed, what worked, and what should carry into next week?"></textarea></label>
-          <button class="primary-button" type="submit">Save weekly plan</button>
+        <form id="weekly-form" class="weekly-form refined-weekly-form">
+          <div class="outcome-field"><span class="outcome-number">01</span><label><b>Most important result</b><small>What would make the week feel meaningfully successful?</small><input id="week-outcome-1" maxlength="120" placeholder="Finish one important deliverable"></label></div>
+          <div class="outcome-field"><span class="outcome-number">02</span><label><b>Progress result</b><small>What should move forward, even if it is not fully finished?</small><input id="week-outcome-2" maxlength="120" placeholder="Move a personal goal to its next checkpoint"></label></div>
+          <div class="outcome-field"><span class="outcome-number">03</span><label><b>Relief result</b><small>What can you complete to reduce pressure or mental clutter?</small><input id="week-outcome-3" maxlength="120" placeholder="Resolve one task that has been creating stress"></label></div>
+          <label class="guardrail-field"><b>Your guardrail</b><small>What should you avoid so the important work stays protected?</small><input id="week-avoid" maxlength="160" placeholder="Starting extra work before current priorities are finished"></label>
+          <label class="notes-field"><b>Notes for Joye</b><small>Capture changes, constraints, or context that should shape the week.</small><textarea id="week-notes" rows="5" maxlength="800" placeholder="What changed, what worked, and what should carry into next week?"></textarea></label>
+          <button class="primary-button" type="submit">Update my week</button>
         </form>
         <div id="weekly-summary" class="weekly-summary"></div>
       </section>
@@ -152,7 +155,7 @@
       <section class="onboarding-step" data-step="2"><span class="eyebrow">YOUR REALITY</span><h2>What is taking up your attention?</h2><label>Biggest source of stress<textarea id="stress-point" rows="3" maxlength="240" placeholder="Too many priorities, an upcoming deadline, or feeling unsure where to begin..."></textarea></label><label>Time available most weekdays<select id="available-time"><option value="15">About 15 minutes</option><option value="30">About 30 minutes</option><option value="60" selected>About 1 hour</option><option value="120">2+ hours</option></select></label><label>Energy after work<select id="energy-level"><option value="low">Usually low</option><option value="medium" selected>Varies</option><option value="high">Usually high</option></select></label></section>
       <section class="onboarding-step" data-step="3"><span class="eyebrow">MONEY & CAREER</span><h2>Give us enough context to be useful.</h2><div class="two-column"><label>Typical take-home paycheck<input id="profile-paycheck" type="number" min="0" step="1" placeholder="1500"></label><label>Pay frequency<select id="pay-frequency"><option value="weekly">Weekly</option><option value="biweekly" selected>Every two weeks</option><option value="semimonthly">Twice monthly</option><option value="monthly">Monthly</option></select></label></div><label>Current role<input id="current-role" maxlength="80" placeholder="Customer Support Specialist"></label><label>Next career goal<input id="career-goal" maxlength="100" placeholder="Team Lead"></label></section>
       <section class="onboarding-step" data-step="4"><span class="eyebrow">THE OUTCOME</span><h2>What would make the next 90 days feel successful?</h2><label>90-day outcome<textarea id="ninety-day-goal" rows="3" maxlength="240" placeholder="Build a consistent routine and make meaningful progress on one important goal."></textarea></label><label class="check-row"><input id="explain-recommendations" type="checkbox" checked><span>Always explain why a recommendation was made</span></label><div class="privacy-note">This prototype stores your plan in this browser. Do not enter account numbers, passwords, or sensitive identifiers.</div></section>
-      <div class="onboarding-actions"><button type="button" id="onboarding-back" class="secondary-button">Back</button><button type="button" id="onboarding-next" class="primary-button">Continue</button><button type="submit" id="onboarding-finish" class="primary-button" hidden>Build my dashboard</button></div>
+      <div class="onboarding-actions"><button type="button" id="onboarding-back" class="secondary-button">Back</button><button type="button" id="onboarding-next" class="primary-button">Continue</button><button type="submit" id="onboarding-finish" class="primary-button" hidden>Build my plan</button></div>
     </form>
   </dialog>
   <script src="app.js"></script>
