@@ -66,3 +66,26 @@ In the Vercel project, open **Settings → Domains**, add the domain, then apply
 - Add authentication before storing personal dashboard data remotely.
 - Add rate limiting and CAPTCHA/Turnstile if waitlist abuse appears.
 - Add transactional email confirmation through Resend, Beehiiv, Kit, or another provider.
+
+
+## v2.3 — Real Ask Joye responses
+
+Ask Joye no longer silently replaces failed AI requests with canned local answers. It now:
+
+- Answers the user’s actual free-form question through `/api/coach`
+- Uses recent conversation history for follow-up questions
+- Uses saved profile, money, task, goal, and career context only when relevant
+- Clearly shows a setup/error message when AI is not connected
+- Defaults to `gpt-5.6-luna`, so `OPENAI_MODEL` is optional
+
+Required Vercel variable:
+
+```text
+OPENAI_API_KEY=your_server_side_api_key
+```
+
+Optional override:
+
+```text
+OPENAI_MODEL=gpt-5.6-luna
+```

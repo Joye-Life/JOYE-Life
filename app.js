@@ -5,7 +5,8 @@ const defaultState = {
   money: { paycheck: 0, essentials: 0, debt: 0, savings: 0, buffer: 200 },
   milestones: [],
   goals: [],
-  lastRecommendation: null
+  lastRecommendation: null,
+  coachHistory: []
 };
 const clone = value => JSON.parse(JSON.stringify(value));
 let state;
@@ -103,8 +104,37 @@ document.querySelector('#money-form').onsubmit=e=>{e.preventDefault();['paycheck
 document.querySelector('#add-milestone').onclick=()=>{const title=prompt('Milestone name');if(title?.trim()){state.milestones.push({id:Date.now(),title:title.trim(),done:false});save();renderAll();requestRecommendation()}};
 document.querySelector('#goal-form').onsubmit=e=>{e.preventDefault();state.goals.push({id:Date.now(),name:document.querySelector('#goal-name').value.trim(),current:Number(document.querySelector('#goal-current').value),target:Number(document.querySelector('#goal-target').value),deadline:document.querySelector('#goal-deadline').value});e.target.reset();save();renderAll();requestRecommendation()};
 document.querySelectorAll('.nav-item').forEach(button=>button.onclick=()=>{document.querySelectorAll('.nav-item,.view').forEach(el=>el.classList.remove('active'));button.classList.add('active');document.querySelector(`#view-${button.dataset.view}`).classList.add('active')});
+function renderCoachAnswer(data) {
+  const box=document.querySelector('#coach-response');
+  const answer=esc(data.answer||'');
+  const steps=(data.nextSteps||[]).map(step=>`<li>${esc(step)}</li>`).join('');
+  const context=(data.usedContext||[]).map(item=>`<span>${esc(item)}</span>`).join('');
+  const follow=data.followUpQuestion?`<button class="coach-followup" type="button">${esc(data.followUpQuestion)}</button>`:'';
+  box.innerHTML=`<div class="coach-answer-text">${answer.replace(/\n/g,'<br>')}</div>${steps?`<ol class="coach-next-steps">${steps}</ol>`:''}${context?`<div class="coach-context"><small>Used from your plan</small>${context}</div>`:''}${follow}`;
+  const followButton=box.querySelector('.coach-followup');
+  if(followButton) followButton.onclick=()=>{document.querySelector('#coach-question').value=data.followUpQuestion;document.querySelector('#coach-question').focus()};
+}
+
+async function askJoye(question) {
+  const box=document.querySelector('#coach-response');
+  const button=document.querySelector('#ask-coach');
+  button.disabled=true;
+  box.innerHTML='<div class="coach-thinking">Joye is reading your plan and thinking about your question…</div>';
+  try {
+    const response=await fetch('/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,profile:state.profile,money:state.money,tasks:state.tasks,goals:state.goals,milestones:state.milestones,history:state.coachHistory||[]})});
+    const data=await response.json().catch(()=>({error:'Ask Joye returned an unreadable response.'}));
+    if(!response.ok) throw new Error(data.error||'Ask Joye is unavailable.');
+    state.coachHistory=[...(state.coachHistory||[]),{role:'user',content:question},{role:'assistant',content:data.answer}].slice(-10);
+    save();
+    renderCoachAnswer(data);
+  } catch(error) {
+    box.innerHTML=`<div class="coach-error"><strong>Ask Joye is not using AI yet.</strong><br>${esc(error.message)}<br><small>Add <code>OPENAI_API_KEY</code> in Vercel, then redeploy. The app will no longer substitute canned answers when AI is unavailable.</small></div>`;
+  } finally { button.disabled=false; }
+}
+
 document.querySelectorAll('[data-question]').forEach(b=>b.onclick=()=>{document.querySelector('#coach-question').value=b.dataset.question;document.querySelector('#ask-coach').click()});
-document.querySelector('#ask-coach').onclick=async()=>{const q=document.querySelector('#coach-question').value.trim();if(!q)return;const box=document.querySelector('#coach-response');box.textContent='Reviewing your plan…';const rec=await requestRecommendation(q);box.innerHTML=`<strong>${esc(rec.headline)}</strong><br>${esc(rec.action)}<br><small>${(rec.reasons||[]).map(esc).join(' · ')}</small>`};
+document.querySelector('#ask-coach').onclick=()=>{const input=document.querySelector('#coach-question');const q=input.value.trim();if(!q)return;askJoye(q)};
+document.querySelector('#coach-question').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')document.querySelector('#ask-coach').click()});
 document.querySelector('#refresh-recommendation').onclick=()=>requestRecommendation();document.querySelector('#accept-next-move').onclick=()=>{const r=state.lastRecommendation||buildLocalRecommendation();const title=(r.taskTitle||r.action).slice(0,100);if(!state.tasks.some(t=>t.title===title))state.tasks.unshift({id:Date.now(),title,area:state.profile?.primaryFocus||'Personal',done:false});save();renderAll()};
 document.querySelector('#reset-demo').onclick=()=>{if(confirm('Reset your local Joye Life prototype data?')){state=clone(defaultState);save();location.reload()}};
 
