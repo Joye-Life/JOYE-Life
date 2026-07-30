@@ -1,4 +1,4 @@
-const storageKey = 'joye_life_personalized_v1';
+const storageKey = 'joye_life_personalized_v2';
 const defaultState = {
   profile: null,
   tasks: [],
@@ -6,7 +6,9 @@ const defaultState = {
   milestones: [],
   goals: [],
   lastRecommendation: null,
-  coachHistory: []
+  coachHistory: [],
+  dailyCheckIn: { minutes: 60, energy: 'medium', date: '' },
+  weeklyPlan: { outcomes: ['', '', ''], avoid: '', notes: '' }
 };
 const clone = value => JSON.parse(JSON.stringify(value));
 let state;
@@ -26,7 +28,7 @@ function seedFromProfile() {
     organization: ['Choose the three outcomes that matter this week','Clear one source of recurring clutter'],
     business: ['Define the one problem your first customer has','Create one piece of useful content']
   };
-  state.tasks = (seeds[focus] || seeds.organization).map((title,i)=>({id:Date.now()+i,title,area:focus[0].toUpperCase()+focus.slice(1),done:false}));
+  state.tasks = (seeds[focus] || seeds.organization).map((title,i)=>({id:Date.now()+i,title,area:focus[0].toUpperCase()+focus.slice(1),done:false,minutes:30,importance:2,due:''}));
   if (state.profile.careerGoal) state.milestones = [
     {id:Date.now()+10,title:`Define requirements for ${state.profile.careerGoal}`,done:false},
     {id:Date.now()+11,title:'Document five measurable work wins',done:false},
@@ -36,14 +38,35 @@ function seedFromProfile() {
   if (state.profile.paycheck) state.money.paycheck = Number(state.profile.paycheck);
 }
 
+
+function getRankedTasks() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  return state.tasks.filter(t=>!t.done).map(task=>{
+    let score=Number(task.importance||2)*20;
+    if(task.area?.toLowerCase()===state.profile?.primaryFocus) score+=15;
+    if(task.due){
+      const due=new Date(task.due+'T12:00:00');
+      const days=Math.ceil((due-today)/86400000);
+      if(days<=0) score+=60; else if(days<=2) score+=40; else if(days<=7) score+=20;
+    }
+    const capacity=Number(state.dailyCheckIn?.minutes||state.profile?.availableTime||60);
+    if(Number(task.minutes||30)<=capacity) score+=12; else score-=12;
+    if(state.dailyCheckIn?.energy==='low' && Number(task.minutes||30)<=20) score+=10;
+    return {...task,score};
+  }).sort((a,b)=>b.score-a.score);
+}
+
 function buildLocalRecommendation(question='') {
   const p = state.profile || {};
-  const openTasks = state.tasks.filter(t=>!t.done);
+  const openTasks = getRankedTasks();
   const flexibleBeforeBuffer = state.money.paycheck-state.money.essentials-state.money.debt-state.money.savings;
   const flexible = flexibleBeforeBuffer-state.money.buffer;
   const urgentGoal = state.goals.filter(g=>g.deadline).sort((a,b)=>new Date(a.deadline)-new Date(b.deadline))[0];
-  const lowTime = Number(p.availableTime||60) <= 30;
-  const lowEnergy = p.energyLevel === 'low';
+  const todayMinutes = Number(state.dailyCheckIn?.minutes||p.availableTime||60);
+  const todayEnergy = state.dailyCheckIn?.energy||p.energyLevel||'medium';
+  const lowTime = todayMinutes <= 30;
+  const lowEnergy = todayEnergy === 'low';
   let headline, action, reasons = [], confidence='High';
   const q = question.toLowerCase();
 
@@ -61,8 +84,8 @@ function buildLocalRecommendation(question='') {
   } else {
     const task = openTasks[0];
     headline = task ? `Make one realistic win in ${task.area}` : 'Choose one action that reduces tomorrow’s stress';
-    action = task ? `${lowEnergy?'Start with just 10 minutes of':`Use ${Math.min(Number(p.availableTime||60),60)} minutes for`} “${task.title}.”` : 'Add one priority that can be completed in the time you actually have.';
-    reasons = [p.stressPoint ? `You said your biggest pressure is: ${p.stressPoint}` : 'Your stress point has not been added yet.', lowTime ? 'Your available time is limited, so the recommendation is intentionally small.' : `You usually have about ${p.availableTime||60} minutes available.`, urgentGoal ? `“${urgentGoal.name}” has the nearest saved deadline.` : 'No deadline is currently creating extra urgency.'];
+    action = task ? `${lowEnergy?'Start with just 10 minutes of':`Use ${Math.min(Number(task.minutes||todayMinutes),todayMinutes)} minutes for`} “${task.title}.”` : 'Add one priority that can be completed in the time you actually have.';
+    reasons = [p.stressPoint ? `You said your biggest pressure is: ${p.stressPoint}` : 'Your stress point has not been added yet.', lowTime ? 'Your available time is limited, so the recommendation is intentionally small.' : `Today you said you have about ${todayMinutes} minutes available.`, urgentGoal ? `“${urgentGoal.name}” has the nearest saved deadline.` : 'No deadline is currently creating extra urgency.'];
   }
   if (!p.name) confidence='Needs context';
   return { headline, action, reasons: reasons.filter(Boolean).slice(0,3), confidence, taskTitle: action.replace(/^Use \d+ minutes for |^Spend \d+ minutes on /,'').replace(/[“”]/g,'').replace(/\.$/,'') };
@@ -90,20 +113,40 @@ function setRecommendation(rec) {
   document.querySelector('#recommendation-source').textContent=rec.source||'Uses your saved priorities and plans.';
 }
 
-function renderAll(){renderTasks();renderMoney();renderMilestones();renderGoals();renderSummary();renderProfile();renderIdentity();if(state.lastRecommendation)setRecommendation(state.lastRecommendation)}
+function renderAll(){renderTasks();renderMoney();renderMilestones();renderGoals();renderSummary();renderProfile();renderIdentity();renderCheckIn();renderWeeklyPlan();if(state.lastRecommendation)setRecommendation(state.lastRecommendation)}
 function renderIdentity(){const name=state.profile?.name||'Your';document.querySelector('#sidebar-name').textContent=state.profile?.name||'Your dashboard';document.querySelector('#avatar').textContent=(state.profile?.name||'JL').split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();document.querySelector('#view-title').textContent=state.profile?`Good ${new Date().getHours()<12?'morning':new Date().getHours()<18?'afternoon':'evening'}, ${name}.`:'Your next move.';document.querySelector('#career-roadmap-title').textContent=state.profile?.careerGoal?`${state.profile.careerGoal} roadmap`:'Career roadmap'}
 function renderSummary(){const done=state.tasks.filter(t=>t.done).length,pct=state.tasks.length?Math.round(done/state.tasks.length*100):0;document.querySelector('#progress-value').textContent=`${pct}%`;document.querySelector('#progress-bar').style.width=`${pct}%`;const f=state.money.paycheck-state.money.essentials-state.money.debt-state.money.savings-state.money.buffer;document.querySelector('#available-value').textContent=currency.format(Math.max(f,0));document.querySelector('#available-note').textContent=f>=0?'after plans and your safety buffer':'plan exceeds available paycheck';const completed=state.milestones.filter(m=>m.done).length;document.querySelector('#career-value').textContent=`${completed}/${state.milestones.length}`}
-function renderTasks(){const list=document.querySelector('#task-list');list.innerHTML='';document.querySelector('#empty-tasks').hidden=state.tasks.length>0;state.tasks.forEach(task=>{const row=document.createElement('div');row.className=`app-task ${task.done?'done':''}`;row.innerHTML=`<label><input type="checkbox" ${task.done?'checked':''}><span><strong>${esc(task.title)}</strong><small>${esc(task.area)}</small></span></label><button aria-label="Delete priority">×</button>`;row.querySelector('input').onchange=e=>{task.done=e.target.checked;save();renderAll();requestRecommendation()};row.querySelector('button').onclick=()=>{state.tasks=state.tasks.filter(t=>t.id!==task.id);save();renderAll();requestRecommendation()};list.appendChild(row)})}
+function renderTasks(){const list=document.querySelector('#task-list');list.innerHTML='';document.querySelector('#empty-tasks').hidden=state.tasks.length>0;state.tasks.forEach(task=>{const row=document.createElement('div');row.className=`app-task ${task.done?'done':''}`;row.innerHTML=`<label><input type="checkbox" ${task.done?'checked':''}><span><strong>${esc(task.title)}</strong><small>${esc(task.area)} · ${Number(task.minutes||30)} min${task.due?` · due ${new Date(task.due+'T12:00:00').toLocaleDateString()}`:''}</small></span></label><button aria-label="Delete priority">×</button>`;row.querySelector('input').onchange=e=>{task.done=e.target.checked;save();renderAll();requestRecommendation()};row.querySelector('button').onclick=()=>{state.tasks=state.tasks.filter(t=>t.id!==task.id);save();renderAll();requestRecommendation()};list.appendChild(row)})}
 function renderMoney(){['paycheck','essentials','debt','savings','buffer'].forEach(id=>document.querySelector(`#${id}`).value=state.money[id]||0);const flexible=state.money.paycheck-state.money.essentials-state.money.debt-state.money.savings-state.money.buffer;document.querySelector('#flexible-result').textContent=currency.format(flexible);const w=document.querySelector('#allocation-warning');w.textContent=flexible<0?`Your plan is short by ${currency.format(Math.abs(flexible))}. Lower flexible allocations before adding spending.`:`${currency.format(flexible)} remains after your stated safety buffer.`;w.className=flexible<0?'warning':''}
 function renderMilestones(){const list=document.querySelector('#milestone-list');list.innerHTML='';state.milestones.forEach(item=>{const row=document.createElement('label');row.className=`milestone ${item.done?'done':''}`;row.innerHTML=`<input type="checkbox" ${item.done?'checked':''}><span>${esc(item.title)}</span><button type="button">×</button>`;row.querySelector('input').onchange=e=>{item.done=e.target.checked;save();renderAll();requestRecommendation()};row.querySelector('button').onclick=()=>{state.milestones=state.milestones.filter(m=>m.id!==item.id);save();renderAll()};list.appendChild(row)})}
 function renderGoals(){const list=document.querySelector('#goal-list');list.innerHTML='';state.goals.forEach(goal=>{const pct=Math.min(100,Math.max(0,Number(goal.current)/Number(goal.target)*100));const card=document.createElement('article');card.className='goal-card';card.innerHTML=`<div><strong>${esc(goal.name)}</strong><button>×</button></div><p>${esc(goal.current)} of ${esc(goal.target)}${goal.deadline?` · due ${new Date(goal.deadline+'T12:00:00').toLocaleDateString()}`:''}</p><div class="progress-track"><i style="width:${pct}%"></i></div>`;card.querySelector('button').onclick=()=>{state.goals=state.goals.filter(g=>g.id!==goal.id);save();renderAll()};list.appendChild(card)})}
 function renderProfile(){const p=state.profile;if(!p){document.querySelector('#profile-summary').innerHTML='<p>Complete setup to build your personal plan.</p>';return}const facts=[['Primary focus',p.primaryFocus],['Biggest pressure',p.stressPoint||'Not entered'],['Weekday time',`${p.availableTime} minutes`],['After-work energy',p.energyLevel],['Current role',p.currentRole||'Not entered'],['Career goal',p.careerGoal||'Not entered'],['90-day outcome',p.ninetyDayGoal||'Not entered'],['Pay frequency',p.payFrequency]];document.querySelector('#profile-summary').innerHTML=facts.map(([k,v])=>`<div class="profile-fact"><small>${esc(k)}</small><strong>${esc(v)}</strong></div>`).join('')}
+function renderCheckIn(){
+  const check=state.dailyCheckIn||{minutes:60,energy:'medium'};
+  document.querySelector('#today-minutes').value=String(check.minutes||60);
+  document.querySelector('#today-energy').value=check.energy||'medium';
+  const ranked=getRankedTasks().slice(0,3);
+  const queue=document.querySelector('#focus-queue');
+  queue.innerHTML=ranked.length?`<small>Best fit for today</small>${ranked.map((task,i)=>`<button type="button" data-focus-id="${task.id}"><b>${i+1}</b><span><strong>${esc(task.title)}</strong><small>${Number(task.minutes||30)} min · ${esc(task.area)}</small></span></button>`).join('')}`:'<small>Add priorities to build a focus queue.</small>';
+  queue.querySelectorAll('[data-focus-id]').forEach(button=>button.onclick=()=>{const task=state.tasks.find(t=>String(t.id)===button.dataset.focusId);if(task){document.querySelectorAll('.nav-item,.view').forEach(el=>el.classList.remove('active'));document.querySelector('[data-view="today"]').classList.add('active');document.querySelector('#view-today').classList.add('active');document.querySelector('#task-list').scrollIntoView({behavior:'smooth',block:'center'})}});
+}
+function renderWeeklyPlan(){
+  const week=state.weeklyPlan||{outcomes:['','',''],avoid:'',notes:''};
+  week.outcomes=(week.outcomes||['','','']).concat(['','','']).slice(0,3);
+  week.outcomes.forEach((value,i)=>document.querySelector(`#week-outcome-${i+1}`).value=value||'');
+  document.querySelector('#week-avoid').value=week.avoid||'';document.querySelector('#week-notes').value=week.notes||'';
+  const completed=week.outcomes.filter(Boolean);
+  document.querySelector('#weekly-summary').innerHTML=completed.length?`<span class="eyebrow">THIS WEEK</span><h3>${completed.length} focused outcome${completed.length===1?'':'s'}</h3><ol>${completed.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>${week.avoid?`<p><strong>Protect the week from:</strong> ${esc(week.avoid)}</p>`:''}`:'<p>Your weekly plan will appear here after you save it.</p>';
+}
 
-const modal=document.querySelector('#task-modal');document.querySelector('#open-task-modal').onclick=()=>modal.showModal();document.querySelector('#close-task-modal').onclick=()=>modal.close();document.querySelector('#task-form').onsubmit=e=>{e.preventDefault();const title=document.querySelector('#task-title').value.trim();if(!title)return;state.tasks.push({id:Date.now(),title,area:document.querySelector('#task-area').value,done:false});e.target.reset();modal.close();save();renderAll();requestRecommendation()};
+
+const modal=document.querySelector('#task-modal');document.querySelector('#open-task-modal').onclick=()=>modal.showModal();document.querySelector('#close-task-modal').onclick=()=>modal.close();document.querySelector('#task-form').onsubmit=e=>{e.preventDefault();const title=document.querySelector('#task-title').value.trim();if(!title)return;state.tasks.push({id:Date.now(),title,area:document.querySelector('#task-area').value,done:false,minutes:Number(document.querySelector('#task-minutes').value||30),importance:Number(document.querySelector('#task-importance').value||2),due:document.querySelector('#task-due').value});e.target.reset();modal.close();save();renderAll();requestRecommendation()};
 document.querySelector('#money-form').onsubmit=e=>{e.preventDefault();['paycheck','essentials','debt','savings','buffer'].forEach(id=>state.money[id]=Number(document.querySelector(`#${id}`).value||0));save();renderAll();requestRecommendation('Can I afford a nonessential purchase?')};
 document.querySelector('#add-milestone').onclick=()=>{const title=prompt('Milestone name');if(title?.trim()){state.milestones.push({id:Date.now(),title:title.trim(),done:false});save();renderAll();requestRecommendation()}};
 document.querySelector('#goal-form').onsubmit=e=>{e.preventDefault();state.goals.push({id:Date.now(),name:document.querySelector('#goal-name').value.trim(),current:Number(document.querySelector('#goal-current').value),target:Number(document.querySelector('#goal-target').value),deadline:document.querySelector('#goal-deadline').value});e.target.reset();save();renderAll();requestRecommendation()};
 document.querySelectorAll('.nav-item').forEach(button=>button.onclick=()=>{document.querySelectorAll('.nav-item,.view').forEach(el=>el.classList.remove('active'));button.classList.add('active');document.querySelector(`#view-${button.dataset.view}`).classList.add('active')});
+document.querySelector('#checkin-form').onsubmit=e=>{e.preventDefault();state.dailyCheckIn={minutes:Number(document.querySelector('#today-minutes').value),energy:document.querySelector('#today-energy').value,date:new Date().toISOString().slice(0,10)};save();renderAll();requestRecommendation()};
+document.querySelector('#weekly-form').onsubmit=e=>{e.preventDefault();state.weeklyPlan={outcomes:[1,2,3].map(i=>document.querySelector(`#week-outcome-${i}`).value.trim()),avoid:document.querySelector('#week-avoid').value.trim(),notes:document.querySelector('#week-notes').value.trim()};save();renderWeeklyPlan();requestRecommendation()};
 function renderCoachAnswer(data) {
   const box=document.querySelector('#coach-response');
   const answer=esc(data.answer||'');
@@ -128,15 +171,47 @@ async function askJoye(question) {
     save();
     renderCoachAnswer(data);
   } catch(error) {
-    box.innerHTML=`<div class="coach-error"><strong>Ask Joye is not using AI yet.</strong><br>${esc(error.message)}<br><small>Add <code>OPENAI_API_KEY</code> in Vercel, then redeploy. The app will no longer substitute canned answers when AI is unavailable.</small></div>`;
+    box.innerHTML=`<div class="coach-error"><strong>Ask Joye is currently limited.</strong><br>This response could not be generated right now. Please try again later.<br><small>Your personalized Next Move, focus queue, money plan, goals, and weekly plan are still available.</small></div>`;
   } finally { button.disabled=false; }
 }
 
 document.querySelectorAll('[data-question]').forEach(b=>b.onclick=()=>{document.querySelector('#coach-question').value=b.dataset.question;document.querySelector('#ask-coach').click()});
 document.querySelector('#ask-coach').onclick=()=>{const input=document.querySelector('#coach-question');const q=input.value.trim();if(!q)return;askJoye(q)};
 document.querySelector('#coach-question').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')document.querySelector('#ask-coach').click()});
-document.querySelector('#refresh-recommendation').onclick=()=>requestRecommendation();document.querySelector('#accept-next-move').onclick=()=>{const r=state.lastRecommendation||buildLocalRecommendation();const title=(r.taskTitle||r.action).slice(0,100);if(!state.tasks.some(t=>t.title===title))state.tasks.unshift({id:Date.now(),title,area:state.profile?.primaryFocus||'Personal',done:false});save();renderAll()};
+document.querySelector('#refresh-recommendation').onclick=()=>requestRecommendation();document.querySelector('#accept-next-move').onclick=()=>{const r=state.lastRecommendation||buildLocalRecommendation();const title=(r.taskTitle||r.action).slice(0,100);if(!state.tasks.some(t=>t.title===title))state.tasks.unshift({id:Date.now(),title,area:state.profile?.primaryFocus||'Personal',done:false,minutes:Math.min(Number(state.dailyCheckIn?.minutes||30),60),importance:3,due:''});save();renderAll()};
 document.querySelector('#reset-demo').onclick=()=>{if(confirm('Reset your local Joye Life prototype data?')){state=clone(defaultState);save();location.reload()}};
+
+
+
+const feedbackForm=document.querySelector('#feedback-form');
+if(feedbackForm){
+  feedbackForm.onsubmit=async e=>{
+    e.preventDefault();
+    const button=document.querySelector('#feedback-submit');
+    const status=document.querySelector('#feedback-status');
+    const message=document.querySelector('#feedback-message').value.trim();
+    if(!message){document.querySelector('#feedback-message').reportValidity();return}
+    button.disabled=true;button.textContent='Sending…';status.className='feedback-status';status.textContent='';
+    try{
+      const response=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        type:document.querySelector('#feedback-type').value,
+        rating:Number(document.querySelector('#feedback-rating').value),
+        message,
+        email:document.querySelector('#feedback-email').value.trim(),
+        mayContact:document.querySelector('#feedback-contact').checked,
+        company:document.querySelector('#feedback-company').value,
+        profileName:state.profile?.name||'',
+        page:location.pathname,
+        source:'dashboard'
+      })});
+      const data=await response.json().catch(()=>({error:'Feedback service returned an unreadable response.'}));
+      if(!response.ok)throw new Error(data.error||'Unable to send feedback.');
+      feedbackForm.reset();document.querySelector('#feedback-rating').value='3';
+      status.className='feedback-status success';status.textContent=data.message||'Thank you. Your feedback was sent.';
+    }catch(error){status.className='feedback-status error';status.textContent=error.message||'Unable to send feedback right now.'}
+    finally{button.disabled=false;button.textContent='Send feedback'}
+  };
+}
 
 document.querySelector('#today-date').textContent=new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric'}).format(new Date()).toUpperCase();
 const onboarding=document.querySelector('#onboarding-modal');let step=1;function showStep(n){step=n;document.querySelectorAll('.onboarding-step').forEach(s=>s.classList.toggle('active',Number(s.dataset.step)===n));document.querySelector('#step-label').textContent=`Step ${n} of 4`;document.querySelector('#onboarding-progress-bar').style.width=`${n*25}%`;document.querySelector('#onboarding-back').hidden=n===1;document.querySelector('#onboarding-next').hidden=n===4;document.querySelector('#onboarding-finish').hidden=n!==4}

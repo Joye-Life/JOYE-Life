@@ -18,7 +18,9 @@
       <button class="nav-item" data-view="money">Money</button>
       <button class="nav-item" data-view="career">Career</button>
       <button class="nav-item" data-view="goals">Goals</button>
+      <button class="nav-item" data-view="week">Weekly plan</button>
       <button class="nav-item" data-view="profile">My plan</button>
+      <button class="nav-item" data-view="feedback">Feedback</button>
     </nav>
     <div class="sidebar-foot"><span class="avatar" id="avatar">JL</span><div><strong id="sidebar-name">Your dashboard</strong><small>Personalized prototype</small></div></div>
   </aside>
@@ -44,6 +46,16 @@
         <article class="summary-card"><span>Career momentum</span><strong id="career-value">0/0</strong><small>milestones complete</small></article>
       </div>
 
+      <section class="app-card checkin-card">
+        <div><span class="eyebrow">TODAY'S CAPACITY</span><h2>Plan for the day you actually have.</h2><p>Joye Life uses this check-in to rank work that fits your available time and energy.</p></div>
+        <form id="checkin-form" class="checkin-form">
+          <label>Time available<select id="today-minutes"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="90">90 minutes</option><option value="120">2+ hours</option></select></label>
+          <label>Energy right now<select id="today-energy"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label>
+          <button class="secondary-button" type="submit">Update today</button>
+        </form>
+        <div id="focus-queue" class="focus-queue"></div>
+      </section>
+
       <div class="content-grid">
         <section class="app-card priorities-card">
           <div class="card-head"><div><span class="eyebrow">TODAY</span><h2>Your priorities</h2></div><button id="open-task-modal" class="primary-button">Add priority</button></div>
@@ -54,7 +66,7 @@
         <section class="app-card coach-card">
           <span class="eyebrow">ASK JOYE</span><h2>Understand what to do next</h2>
           <div id="coach-response" class="coach-response">Ask anything. Joye will answer dynamically using the information in your plan when it is relevant.</div>
-          <textarea id="coach-question" rows="3" placeholder="What should I focus on tonight?"></textarea>
+          <textarea id="coach-question" rows="3" placeholder="What should I work on with the time I have today?"></textarea>
           <button id="ask-coach" class="primary-button">Ask Joye</button><small class="coach-hint">Press Ctrl/⌘ + Enter to send</small>
           <div class="coach-actions">
             <button data-question="What should I focus on today?">Focus today</button>
@@ -104,21 +116,62 @@
       </section>
     </section>
 
+
+    <section class="view" id="view-week">
+      <div class="page-intro"><span class="eyebrow">WEEKLY PLAN</span><h2>Decide what a good week looks like.</h2><p>Keep the week focused with three outcomes, one thing to avoid, and a short review.</p></div>
+      <section class="app-card weekly-card">
+        <form id="weekly-form" class="weekly-form">
+          <label>Top outcome 1<input id="week-outcome-1" maxlength="120" placeholder="Finish one important deliverable"></label>
+          <label>Top outcome 2<input id="week-outcome-2" maxlength="120" placeholder="Make progress on a personal goal"></label>
+          <label>Top outcome 3<input id="week-outcome-3" maxlength="120" placeholder="Handle one task that has been creating stress"></label>
+          <label>What should you avoid this week?<input id="week-avoid" maxlength="160" placeholder="Taking on extra work before current priorities are finished"></label>
+          <label>Weekly notes<textarea id="week-notes" rows="5" maxlength="800" placeholder="What changed, what worked, and what should carry into next week?"></textarea></label>
+          <button class="primary-button" type="submit">Save weekly plan</button>
+        </form>
+        <div id="weekly-summary" class="weekly-summary"></div>
+      </section>
+    </section>
+
+
+    <section class="view" id="view-feedback">
+      <div class="page-intro"><span class="eyebrow">FEEDBACK</span><h2>Help shape Joye Life.</h2><p>Share what worked, what felt confusing, or what you wish the app could do next.</p></div>
+      <section class="app-card feedback-card">
+        <form id="feedback-form" class="feedback-form">
+          <div class="two-column">
+            <label>Feedback type<select id="feedback-type"><option value="idea">Feature idea</option><option value="bug">Something is broken</option><option value="confusing">Something is confusing</option><option value="general">General feedback</option></select></label>
+            <label>Overall experience<select id="feedback-rating"><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3" selected>3 — Okay</option><option value="2">2 — Frustrating</option><option value="1">1 — Poor</option></select></label>
+          </div>
+          <label>What should we know?<textarea id="feedback-message" rows="7" maxlength="2000" required placeholder="Tell us what happened, what you expected, or what would make Joye Life more useful."></textarea></label>
+          <label>Email for a reply <span class="optional-label">optional</span><input id="feedback-email" type="email" maxlength="254" placeholder="you@example.com"></label>
+          <label class="check-row"><input id="feedback-contact" type="checkbox"><span>Joye Life may contact me about this feedback</span></label>
+          <input id="feedback-company" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <button id="feedback-submit" class="primary-button" type="submit">Send feedback</button>
+          <div id="feedback-status" class="feedback-status" role="status" aria-live="polite"></div>
+        </form>
+        <aside class="feedback-side">
+          <span class="eyebrow">WHAT HELPS MOST</span>
+          <h3>Specific examples make the product better.</h3>
+          <p>For a bug, include what you clicked and what happened. For an idea, explain the problem you were trying to solve.</p>
+          <div class="feedback-promise"><strong>Early-access note</strong><span>Some features, including Ask Joye, may be limited while the product is being improved.</span></div>
+        </aside>
+      </section>
+    </section>
+
     <section class="view" id="view-profile">
       <div class="page-intro"><span class="eyebrow">MY PLAN</span><h2>What Joye Life understands about you.</h2><p>Edit this whenever your priorities, schedule, or circumstances change.</p></div>
       <section class="app-card profile-summary" id="profile-summary"></section>
     </section>
   </main>
 
-  <dialog id="task-modal"><form id="task-form" method="dialog" class="modal-form"><div class="card-head"><h2>Add a priority</h2><button type="button" id="close-task-modal" class="icon-close">×</button></div><label>Priority<input id="task-title" maxlength="100" required></label><label>Area<select id="task-area"><option>Career</option><option>Money</option><option>Health</option><option>Personal</option></select></label><button class="primary-button" type="submit">Add to today</button></form></dialog>
+  <dialog id="task-modal"><form id="task-form" method="dialog" class="modal-form"><div class="card-head"><h2>Add a priority</h2><button type="button" id="close-task-modal" class="icon-close">×</button></div><label>Priority<input id="task-title" maxlength="100" required></label><label>Area<select id="task-area"><option>Career</option><option>Money</option><option>Health</option><option>Personal</option></select></label><div class="two-column"><label>Estimated time<select id="task-minutes"><option value="10">10 minutes</option><option value="20">20 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option><option value="90">90 minutes</option></select></label><label>Importance<select id="task-importance"><option value="1">Low</option><option value="2" selected>Normal</option><option value="3">High</option></select></label></div><label>Due date<input id="task-due" type="date"></label><button class="primary-button" type="submit">Add to today</button></form></dialog>
 
   <dialog id="onboarding-modal" class="onboarding-dialog">
     <form id="onboarding-form" class="onboarding-form">
       <div class="onboarding-progress"><span id="step-label">Step 1 of 4</span><div class="progress-track"><i id="onboarding-progress-bar"></i></div></div>
-      <section class="onboarding-step active" data-step="1"><span class="eyebrow">WELCOME TO JOYE LIFE</span><h2>What should we call you?</h2><p>This creates a personal dashboard—not a generic demo.</p><label>First name<input id="profile-name" maxlength="40" required placeholder="Thomas"></label><label>What do you most want to improve?<select id="primary-focus"><option value="money">Money</option><option value="career">Career</option><option value="health">Health</option><option value="organization">Organization</option><option value="business">Side business</option></select></label></section>
-      <section class="onboarding-step" data-step="2"><span class="eyebrow">YOUR REALITY</span><h2>What is taking up your attention?</h2><label>Biggest source of stress<textarea id="stress-point" rows="3" maxlength="240" placeholder="Credit card debt, not knowing what to focus on after work..."></textarea></label><label>Time available most weekdays<select id="available-time"><option value="15">About 15 minutes</option><option value="30">About 30 minutes</option><option value="60" selected>About 1 hour</option><option value="120">2+ hours</option></select></label><label>Energy after work<select id="energy-level"><option value="low">Usually low</option><option value="medium" selected>Varies</option><option value="high">Usually high</option></select></label></section>
-      <section class="onboarding-step" data-step="3"><span class="eyebrow">MONEY & CAREER</span><h2>Give us enough context to be useful.</h2><div class="two-column"><label>Typical take-home paycheck<input id="profile-paycheck" type="number" min="0" step="1" placeholder="1854"></label><label>Pay frequency<select id="pay-frequency"><option value="weekly">Weekly</option><option value="biweekly" selected>Every two weeks</option><option value="semimonthly">Twice monthly</option><option value="monthly">Monthly</option></select></label></div><label>Current role<input id="current-role" maxlength="80" placeholder="Help Desk Technician"></label><label>Next career goal<input id="career-goal" maxlength="100" placeholder="Systems Engineer"></label></section>
-      <section class="onboarding-step" data-step="4"><span class="eyebrow">THE OUTCOME</span><h2>What would make the next 90 days feel successful?</h2><label>90-day outcome<textarea id="ninety-day-goal" rows="3" maxlength="240" placeholder="Pay down $1,500 of debt and pass Network+."></textarea></label><label class="check-row"><input id="explain-recommendations" type="checkbox" checked><span>Always explain why a recommendation was made</span></label><div class="privacy-note">This prototype stores your plan in this browser. Do not enter account numbers, passwords, or sensitive identifiers.</div></section>
+      <section class="onboarding-step active" data-step="1"><span class="eyebrow">WELCOME TO JOYE LIFE</span><h2>What should we call you?</h2><p>This creates a personal dashboard—not a generic demo.</p><label>First name<input id="profile-name" maxlength="40" required placeholder="Alex"></label><label>What do you most want to improve?<select id="primary-focus"><option value="money">Money</option><option value="career">Career</option><option value="health">Health</option><option value="organization">Organization</option><option value="business">Side business</option></select></label></section>
+      <section class="onboarding-step" data-step="2"><span class="eyebrow">YOUR REALITY</span><h2>What is taking up your attention?</h2><label>Biggest source of stress<textarea id="stress-point" rows="3" maxlength="240" placeholder="Too many priorities, an upcoming deadline, or feeling unsure where to begin..."></textarea></label><label>Time available most weekdays<select id="available-time"><option value="15">About 15 minutes</option><option value="30">About 30 minutes</option><option value="60" selected>About 1 hour</option><option value="120">2+ hours</option></select></label><label>Energy after work<select id="energy-level"><option value="low">Usually low</option><option value="medium" selected>Varies</option><option value="high">Usually high</option></select></label></section>
+      <section class="onboarding-step" data-step="3"><span class="eyebrow">MONEY & CAREER</span><h2>Give us enough context to be useful.</h2><div class="two-column"><label>Typical take-home paycheck<input id="profile-paycheck" type="number" min="0" step="1" placeholder="1500"></label><label>Pay frequency<select id="pay-frequency"><option value="weekly">Weekly</option><option value="biweekly" selected>Every two weeks</option><option value="semimonthly">Twice monthly</option><option value="monthly">Monthly</option></select></label></div><label>Current role<input id="current-role" maxlength="80" placeholder="Customer Support Specialist"></label><label>Next career goal<input id="career-goal" maxlength="100" placeholder="Team Lead"></label></section>
+      <section class="onboarding-step" data-step="4"><span class="eyebrow">THE OUTCOME</span><h2>What would make the next 90 days feel successful?</h2><label>90-day outcome<textarea id="ninety-day-goal" rows="3" maxlength="240" placeholder="Build a consistent routine and make meaningful progress on one important goal."></textarea></label><label class="check-row"><input id="explain-recommendations" type="checkbox" checked><span>Always explain why a recommendation was made</span></label><div class="privacy-note">This prototype stores your plan in this browser. Do not enter account numbers, passwords, or sensitive identifiers.</div></section>
       <div class="onboarding-actions"><button type="button" id="onboarding-back" class="secondary-button">Back</button><button type="button" id="onboarding-next" class="primary-button">Continue</button><button type="submit" id="onboarding-finish" class="primary-button" hidden>Build my dashboard</button></div>
     </form>
   </dialog>

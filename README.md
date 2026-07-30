@@ -89,3 +89,12 @@ Optional override:
 ```text
 OPENAI_MODEL=gpt-5.6-luna
 ```
+
+
+## v2.5 — Feedback and early-access messaging
+
+- Replaced payment-related AI messaging with neutral early-access limitation messaging.
+- Added a full in-app Feedback area.
+- Saves feedback to a private Supabase table.
+- Prepared optional Resend delivery directly to the owner email.
+- See `FEEDBACK-SETUP.md`.
