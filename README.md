@@ -1,107 +1,54 @@
-# Joye Life Website v2.1
+# Joye Life v3
 
-A deployable Joye Life marketing site plus a functional local-first Joye Life dashboard prototype.
+Production rebuild of Joye Life using Next.js, TypeScript, Tailwind CSS, Supabase Auth, and a shared context engine.
 
-## Included
+## Included in this milestone
 
-- Responsive marketing homepage
-- Functional dashboard (`app.html`)
-- Tasks, paycheck allocation, career milestones, goals, and rule-based Joye Life Coach
-- Browser local-storage persistence
-- Supabase-backed waitlist through a Vercel serverless function
-- Privacy Policy and Terms of Use starter pages
-- Vercel configuration and security headers
+- New maintainable Next.js app structure
+- Public marketing page
+- Gated beta application form and server route
+- Supabase email/password authentication screens
+- Protected dashboard middleware
+- Redesigned Today experience
+- Shared Joye signal and recommendation engine
+- Admin application list skeleton
+- Supabase v3 schema and Row Level Security migration
+- Mobile dashboard navigation
 
-## Preview locally
+## Replace the current repository
 
-The marketing site and dashboard can be previewed with any static server:
+This is a full rebuild, not an in-place static HTML update. Back up the current `main` branch or tag it as `v2.7`, then replace the repository contents with this folder.
 
-```powershell
-py -m http.server 8080
+## Local setup
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
 ```
 
-Open `http://localhost:8080`. The waitlist API will not function under the Python server.
+Open `http://localhost:3000`.
 
-For the full API locally:
+## Supabase setup
 
-```powershell
-npm install -g vercel
-vercel dev
-```
+1. Open Supabase SQL Editor.
+2. Run `supabase/migrations/001_v3_foundation.sql`.
+3. In Authentication settings, add your local and Vercel URLs to allowed redirect URLs.
+4. Add the variables from `.env.example` to Vercel.
 
-## Configure Supabase
+The server-only `SUPABASE_SECRET_KEY` must never be committed or exposed to the browser.
 
-The project URL and publishable key are already recorded in `.env.example`.
+## Vercel
 
-1. Open the Supabase SQL Editor and run `supabase/waitlist.sql`.
-2. In Supabase, open **Project Settings → API Keys**.
-3. Copy the server-side **secret key**. Do not send or paste it into chat.
-4. In Vercel, open **Project → Settings → Environment Variables**.
-5. Add:
-   - `SUPABASE_URL` = `https://wgnottjuttkipccoiqhx.supabase.co`
-   - `SUPABASE_PUBLISHABLE_KEY` = the publishable key already supplied
-   - `SUPABASE_SECRET_KEY` = your server-side secret key
-6. Redeploy after saving the variables.
+After pushing this code to `main`, Vercel should detect Next.js automatically. Remove any old static-site framework overrides or root-directory settings before redeploying.
 
-Never put the secret/service-role key in `script.js`, HTML, public configuration, GitHub, screenshots, or chat.
+## Important beta gate
 
-## Deploy to Vercel
+The database defaults new profiles to `access_status = 'pending'`. The next milestone will enforce approved-email matching during signup and add Approve/Reject/Invite actions to the admin portal. The application flow is already stored in `beta_applications`.
 
-1. Create a Git repository and push this folder.
-2. Import the repository into Vercel.
-3. Add these Environment Variables in Vercel Project Settings:
-   - `SUPABASE_URL`
-   - `SUPABASE_SECRET_KEY` (preferred) or `SUPABASE_SERVICE_ROLE_KEY` for a legacy project
-4. Deploy.
-5. Test the homepage waitlist form and confirm a row appears in `public.waitlist`.
+## Next milestone
 
-## Custom domain
-
-In the Vercel project, open **Settings → Domains**, add the domain, then apply the DNS records Vercel provides at the domain registrar. Set the preferred production domain and redirect the alternate `www` or apex version to it.
-
-## Before public launch
-
-- Replace placeholder email addresses if `joye.systems` is not owned.
-- Have the Privacy Policy and Terms reviewed by an attorney.
-- Add authentication before storing personal dashboard data remotely.
-- Add rate limiting and CAPTCHA/Turnstile if waitlist abuse appears.
-- Add transactional email confirmation through Resend, Beehiiv, Kit, or another provider.
-
-
-## v2.3 — Real Ask Joye responses
-
-Ask Joye no longer silently replaces failed AI requests with canned local answers. It now:
-
-- Answers the user’s actual free-form question through `/api/coach`
-- Uses recent conversation history for follow-up questions
-- Uses saved profile, money, task, goal, and career context only when relevant
-- Clearly shows a setup/error message when AI is not connected
-- Defaults to `gpt-5.6-luna`, so `OPENAI_MODEL` is optional
-
-Required Vercel variable:
-
-```text
-OPENAI_API_KEY=your_server_side_api_key
-```
-
-Optional override:
-
-```text
-OPENAI_MODEL=gpt-5.6-luna
-```
-
-
-## v2.6 intelligence layer
-The dashboard now includes a live Today brief and section-specific Joye Insights. These work locally now and are designed to feed section context into the full AI service later.
-
-## Public beta access plan
-
-Before public launch, the current open **Try Dashboard** route should be replaced with an application-gated flow:
-
-1. Visitor submits a beta application.
-2. Application is stored with a `pending` status in Supabase.
-3. The Joye Life owner approves or declines the applicant.
-4. Approved users receive an invite link and can create an account.
-5. The dashboard requires an authenticated, approved account.
-
-This is intentionally documented but not enabled in v2.7 so product testing can continue without locking the owner out during development.
+- Approval enforcement and invite flow
+- Authenticated onboarding backed by Supabase
+- Load real user data into the Joye Context Engine
+- Functional Plan, Progress, Coach, and Profile modules
