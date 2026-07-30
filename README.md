@@ -52,3 +52,12 @@ The database defaults new profiles to `access_status = 'pending'`. The next mile
 - Authenticated onboarding backed by Supabase
 - Load real user data into the Joye Context Engine
 - Functional Plan, Progress, Coach, and Profile modules
+
+## Admin access
+
+1. Add `ADMIN_EMAIL` in Vercel using the exact email address of the Joye Life owner account.
+2. Run `supabase/migrations/002_admin_roles.sql` after the foundation migration.
+3. Create and verify an account with that exact email address.
+4. Sign in, then visit `/admin/applications`.
+
+The first authenticated visit automatically assigns that account the `owner` role and activates its profile. No shared or hardcoded admin password is used.
