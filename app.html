@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="JOYE personal dashboard prototype." />
-  <title>JOYE Dashboard</title>
+  <meta name="description" content="Joye Life personalized dashboard prototype." />
+  <title>Joye Life Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -12,23 +12,32 @@
 </head>
 <body>
   <aside class="app-sidebar">
-    <a class="app-brand" href="index.html">JOYE<span>.</span></a>
+    <a class="app-brand" href="index.html">JOYE LIFE<span>.</span></a>
     <nav>
       <button class="nav-item active" data-view="today">Today</button>
       <button class="nav-item" data-view="money">Money</button>
       <button class="nav-item" data-view="career">Career</button>
       <button class="nav-item" data-view="goals">Goals</button>
+      <button class="nav-item" data-view="profile">My plan</button>
     </nav>
-    <div class="sidebar-foot"><span class="avatar">TJ</span><div><strong>Thomas</strong><small>Local prototype</small></div></div>
+    <div class="sidebar-foot"><span class="avatar" id="avatar">JL</span><div><strong id="sidebar-name">Your dashboard</strong><small>Personalized prototype</small></div></div>
   </aside>
 
   <main class="app-main">
     <header class="app-header">
-      <div><small id="today-date"></small><h1 id="view-title">Good afternoon, Thomas.</h1></div>
-      <div class="header-buttons"><button id="reset-demo" class="secondary-button">Reset demo</button><a class="secondary-button" href="index.html">Website</a></div>
+      <div><small id="today-date"></small><h1 id="view-title">Your next move.</h1></div>
+      <div class="header-buttons"><button id="edit-profile" class="secondary-button">Update my plan</button><button id="reset-demo" class="secondary-button">Reset</button><a class="secondary-button" href="index.html">Website</a></div>
     </header>
 
     <section class="view active" id="view-today">
+      <article class="next-move-card">
+        <div class="next-move-top"><div><span class="eyebrow">YOUR NEXT MOVE</span><h2 id="next-move-headline">Tell Joye Life what matters right now.</h2></div><span id="recommendation-confidence" class="confidence">Needs context</span></div>
+        <p id="next-move-action">Complete the quick setup so your dashboard can recommend a realistic next step.</p>
+        <div id="next-move-reasons" class="reason-list"></div>
+        <div class="next-move-actions"><button id="accept-next-move" class="primary-button">Add to today</button><button id="refresh-recommendation" class="secondary-button">Recalculate</button></div>
+        <small id="recommendation-source">Uses your saved priorities and plans.</small>
+      </article>
+
       <div class="summary-grid">
         <article class="summary-card"><span>Weekly progress</span><strong id="progress-value">0%</strong><div class="progress-track"><i id="progress-bar"></i></div></article>
         <article class="summary-card"><span>Available this paycheck</span><strong id="available-value">$0</strong><small id="available-note"></small></article>
@@ -43,61 +52,74 @@
         </section>
 
         <section class="app-card coach-card">
-          <span class="eyebrow">JOYE COACH</span><h2>Ask what to do next</h2>
-          <div id="coach-response" class="coach-response">Complete your highest-impact unfinished priority first. Small wins create momentum.</div>
+          <span class="eyebrow">ASK JOYE</span><h2>Understand what to do next</h2>
+          <div id="coach-response" class="coach-response">Ask a question and Joye Life will use the information in your plan.</div>
+          <textarea id="coach-question" rows="3" placeholder="What should I focus on tonight?"></textarea>
+          <button id="ask-coach" class="primary-button">Ask Joye</button>
           <div class="coach-actions">
-            <button data-question="focus">What should I focus on?</button>
-            <button data-question="money">Can I spend extra money?</button>
-            <button data-question="career">How do I advance my career?</button>
+            <button data-question="What should I focus on today?">Focus today</button>
+            <button data-question="Can I afford a nonessential purchase?">Spending decision</button>
+            <button data-question="What is my best next career move?">Career move</button>
           </div>
         </section>
       </div>
     </section>
 
     <section class="view" id="view-money">
-      <div class="page-intro"><span class="eyebrow">MONEY OS</span><h2>Give every paycheck a job.</h2><p>This prototype calculates a simple allocation and saves it in your browser.</p></div>
+      <div class="page-intro"><span class="eyebrow">MONEY</span><h2>Make a plan that matches real life.</h2><p>Joye Life considers upcoming obligations, debt pressure, savings, and the buffer you say you need.</p></div>
       <section class="app-card form-card">
         <form id="money-form" class="data-form">
           <label>Paycheck amount<input id="paycheck" type="number" min="0" step="0.01" required></label>
-          <label>Essentials<input id="essentials" type="number" min="0" step="0.01" required></label>
-          <label>Debt payment<input id="debt" type="number" min="0" step="0.01" required></label>
-          <label>Savings<input id="savings" type="number" min="0" step="0.01" required></label>
-          <button class="primary-button" type="submit">Save allocation</button>
+          <label>Essentials due before next payday<input id="essentials" type="number" min="0" step="0.01" required></label>
+          <label>Planned debt payment<input id="debt" type="number" min="0" step="0.01" required></label>
+          <label>Planned savings<input id="savings" type="number" min="0" step="0.01" required></label>
+          <label>Minimum safety buffer<input id="buffer" type="number" min="0" step="0.01" required></label>
+          <button class="primary-button" type="submit">Save paycheck plan</button>
         </form>
         <div class="allocation-result">
-          <span>Flexible money remaining</span><strong id="flexible-result">$0</strong><p id="allocation-warning"></p>
+          <span>Flexible money after your buffer</span><strong id="flexible-result">$0</strong><p id="allocation-warning"></p>
         </div>
       </section>
     </section>
 
     <section class="view" id="view-career">
-      <div class="page-intro"><span class="eyebrow">CAREER OS</span><h2>Turn work into visible momentum.</h2><p>Track milestones and build a record of progress you can use in reviews and interviews.</p></div>
+      <div class="page-intro"><span class="eyebrow">CAREER</span><h2>Turn your goal into visible momentum.</h2><p>Track milestones and tell Joye Life where you want to go next.</p></div>
       <section class="app-card">
-        <div class="card-head"><h2>Systems Engineer roadmap</h2><button id="add-milestone" class="primary-button">Add milestone</button></div>
+        <div class="card-head"><h2 id="career-roadmap-title">Career roadmap</h2><button id="add-milestone" class="primary-button">Add milestone</button></div>
         <div id="milestone-list" class="milestone-list"></div>
       </section>
     </section>
 
     <section class="view" id="view-goals">
-      <div class="page-intro"><span class="eyebrow">GOALS</span><h2>Make progress measurable.</h2><p>Set a target, current value, and deadline. JOYE converts it into a visible progress bar.</p></div>
+      <div class="page-intro"><span class="eyebrow">GOALS</span><h2>Make progress measurable.</h2><p>Joye Life uses active goals and deadlines when deciding what deserves your attention.</p></div>
       <section class="app-card">
         <form id="goal-form" class="goal-form">
           <input id="goal-name" placeholder="Goal name" required>
           <input id="goal-current" type="number" min="0" placeholder="Current" required>
           <input id="goal-target" type="number" min="1" placeholder="Target" required>
+          <input id="goal-deadline" type="date">
           <button class="primary-button" type="submit">Add goal</button>
         </form>
         <div id="goal-list" class="goal-list"></div>
       </section>
     </section>
+
+    <section class="view" id="view-profile">
+      <div class="page-intro"><span class="eyebrow">MY PLAN</span><h2>What Joye Life understands about you.</h2><p>Edit this whenever your priorities, schedule, or circumstances change.</p></div>
+      <section class="app-card profile-summary" id="profile-summary"></section>
+    </section>
   </main>
 
-  <dialog id="task-modal">
-    <form id="task-form" method="dialog" class="modal-form">
-      <div class="card-head"><h2>Add a priority</h2><button type="button" id="close-task-modal" class="icon-close">×</button></div>
-      <label>Priority<input id="task-title" maxlength="100" required></label>
-      <label>Area<select id="task-area"><option>Career</option><option>Money</option><option>Health</option><option>Personal</option></select></label>
-      <button class="primary-button" type="submit">Add to today</button>
+  <dialog id="task-modal"><form id="task-form" method="dialog" class="modal-form"><div class="card-head"><h2>Add a priority</h2><button type="button" id="close-task-modal" class="icon-close">×</button></div><label>Priority<input id="task-title" maxlength="100" required></label><label>Area<select id="task-area"><option>Career</option><option>Money</option><option>Health</option><option>Personal</option></select></label><button class="primary-button" type="submit">Add to today</button></form></dialog>
+
+  <dialog id="onboarding-modal" class="onboarding-dialog">
+    <form id="onboarding-form" class="onboarding-form">
+      <div class="onboarding-progress"><span id="step-label">Step 1 of 4</span><div class="progress-track"><i id="onboarding-progress-bar"></i></div></div>
+      <section class="onboarding-step active" data-step="1"><span class="eyebrow">WELCOME TO JOYE LIFE</span><h2>What should we call you?</h2><p>This creates a personal dashboard—not a generic demo.</p><label>First name<input id="profile-name" maxlength="40" required placeholder="Thomas"></label><label>What do you most want to improve?<select id="primary-focus"><option value="money">Money</option><option value="career">Career</option><option value="health">Health</option><option value="organization">Organization</option><option value="business">Side business</option></select></label></section>
+      <section class="onboarding-step" data-step="2"><span class="eyebrow">YOUR REALITY</span><h2>What is taking up your attention?</h2><label>Biggest source of stress<textarea id="stress-point" rows="3" maxlength="240" placeholder="Credit card debt, not knowing what to focus on after work..."></textarea></label><label>Time available most weekdays<select id="available-time"><option value="15">About 15 minutes</option><option value="30">About 30 minutes</option><option value="60" selected>About 1 hour</option><option value="120">2+ hours</option></select></label><label>Energy after work<select id="energy-level"><option value="low">Usually low</option><option value="medium" selected>Varies</option><option value="high">Usually high</option></select></label></section>
+      <section class="onboarding-step" data-step="3"><span class="eyebrow">MONEY & CAREER</span><h2>Give us enough context to be useful.</h2><div class="two-column"><label>Typical take-home paycheck<input id="profile-paycheck" type="number" min="0" step="1" placeholder="1854"></label><label>Pay frequency<select id="pay-frequency"><option value="weekly">Weekly</option><option value="biweekly" selected>Every two weeks</option><option value="semimonthly">Twice monthly</option><option value="monthly">Monthly</option></select></label></div><label>Current role<input id="current-role" maxlength="80" placeholder="Help Desk Technician"></label><label>Next career goal<input id="career-goal" maxlength="100" placeholder="Systems Engineer"></label></section>
+      <section class="onboarding-step" data-step="4"><span class="eyebrow">THE OUTCOME</span><h2>What would make the next 90 days feel successful?</h2><label>90-day outcome<textarea id="ninety-day-goal" rows="3" maxlength="240" placeholder="Pay down $1,500 of debt and pass Network+."></textarea></label><label class="check-row"><input id="explain-recommendations" type="checkbox" checked><span>Always explain why a recommendation was made</span></label><div class="privacy-note">This prototype stores your plan in this browser. Do not enter account numbers, passwords, or sensitive identifiers.</div></section>
+      <div class="onboarding-actions"><button type="button" id="onboarding-back" class="secondary-button">Back</button><button type="button" id="onboarding-next" class="primary-button">Continue</button><button type="submit" id="onboarding-finish" class="primary-button" hidden>Build my dashboard</button></div>
     </form>
   </dialog>
   <script src="app.js"></script>
