@@ -20,7 +20,6 @@
       <button class="nav-item" data-view="goals">Goals</button>
       <button class="nav-item" data-view="week">Weekly plan</button>
       <button class="nav-item" data-view="profile">My plan</button>
-      <button class="nav-item" data-view="feedback">Feedback</button>
     </nav>
     <div class="sidebar-foot"><span class="avatar" id="avatar">JL</span><div><strong id="sidebar-name">Your dashboard</strong><small>Personalized prototype</small></div></div>
   </aside>
@@ -39,6 +38,12 @@
         <div class="next-move-actions"><button id="accept-next-move" class="primary-button">Add to today</button><button id="refresh-recommendation" class="secondary-button">Recalculate</button></div>
         <small id="recommendation-source">Uses your saved priorities and plans.</small>
       </article>
+
+      <section class="live-brief app-card">
+        <div class="card-head"><div><span class="eyebrow">LIVE BRIEF</span><h2>What matters right now</h2></div><span id="brief-freshness" class="freshness-pill">Updated now</span></div>
+        <div id="today-signals" class="signal-grid"></div>
+        <div id="today-brief-copy" class="brief-copy"></div>
+      </section>
 
       <div class="summary-grid">
         <article class="summary-card"><span>Weekly progress</span><strong id="progress-value">0%</strong><div class="progress-track"><i id="progress-bar"></i></div></article>
@@ -78,7 +83,7 @@
     </section>
 
     <section class="view" id="view-money">
-      <div class="page-intro"><span class="eyebrow">MONEY</span><h2>Make a plan that matches real life.</h2><p>Joye Life considers upcoming obligations, debt pressure, savings, and the buffer you say you need.</p></div>
+      <div class="page-intro"><span class="eyebrow">MONEY</span><h2>Make a plan that matches real life.</h2><p>Joye Life considers upcoming obligations, debt pressure, savings, and the buffer you say you need.</p></div><section class="section-intelligence" id="money-intelligence"></section>
       <section class="app-card form-card">
         <form id="money-form" class="data-form">
           <label>Paycheck amount<input id="paycheck" type="number" min="0" step="0.01" required></label>
@@ -95,7 +100,7 @@
     </section>
 
     <section class="view" id="view-career">
-      <div class="page-intro"><span class="eyebrow">CAREER</span><h2>Turn your goal into visible momentum.</h2><p>Track milestones and tell Joye Life where you want to go next.</p></div>
+      <div class="page-intro"><span class="eyebrow">CAREER</span><h2>Turn your goal into visible momentum.</h2><p>Track milestones and tell Joye Life where you want to go next.</p></div><section class="section-intelligence" id="career-intelligence"></section>
       <section class="app-card">
         <div class="card-head"><h2 id="career-roadmap-title">Career roadmap</h2><button id="add-milestone" class="primary-button">Add milestone</button></div>
         <div id="milestone-list" class="milestone-list"></div>
@@ -103,7 +108,7 @@
     </section>
 
     <section class="view" id="view-goals">
-      <div class="page-intro"><span class="eyebrow">GOALS</span><h2>Make progress measurable.</h2><p>Joye Life uses active goals and deadlines when deciding what deserves your attention.</p></div>
+      <div class="page-intro"><span class="eyebrow">GOALS</span><h2>Make progress measurable.</h2><p>Joye Life uses active goals and deadlines when deciding what deserves your attention.</p></div><section class="section-intelligence" id="goals-intelligence"></section>
       <section class="app-card">
         <form id="goal-form" class="goal-form">
           <input id="goal-name" placeholder="Goal name" required>
@@ -118,7 +123,7 @@
 
 
     <section class="view" id="view-week">
-      <div class="page-intro"><span class="eyebrow">WEEKLY PLAN</span><h2>Decide what a good week looks like.</h2><p>Keep the week focused with three outcomes, one thing to avoid, and a short review.</p></div>
+      <div class="page-intro"><span class="eyebrow">WEEKLY PLAN</span><h2>Decide what a good week looks like.</h2><p>Keep the week focused with three outcomes, one thing to avoid, and a short review.</p></div><section class="section-intelligence" id="week-intelligence"></section>
       <section class="app-card weekly-card">
         <form id="weekly-form" class="weekly-form">
           <label>Top outcome 1<input id="week-outcome-1" maxlength="120" placeholder="Finish one important deliverable"></label>
@@ -129,31 +134,6 @@
           <button class="primary-button" type="submit">Save weekly plan</button>
         </form>
         <div id="weekly-summary" class="weekly-summary"></div>
-      </section>
-    </section>
-
-
-    <section class="view" id="view-feedback">
-      <div class="page-intro"><span class="eyebrow">FEEDBACK</span><h2>Help shape Joye Life.</h2><p>Share what worked, what felt confusing, or what you wish the app could do next.</p></div>
-      <section class="app-card feedback-card">
-        <form id="feedback-form" class="feedback-form">
-          <div class="two-column">
-            <label>Feedback type<select id="feedback-type"><option value="idea">Feature idea</option><option value="bug">Something is broken</option><option value="confusing">Something is confusing</option><option value="general">General feedback</option></select></label>
-            <label>Overall experience<select id="feedback-rating"><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3" selected>3 — Okay</option><option value="2">2 — Frustrating</option><option value="1">1 — Poor</option></select></label>
-          </div>
-          <label>What should we know?<textarea id="feedback-message" rows="7" maxlength="2000" required placeholder="Tell us what happened, what you expected, or what would make Joye Life more useful."></textarea></label>
-          <label>Email for a reply <span class="optional-label">optional</span><input id="feedback-email" type="email" maxlength="254" placeholder="you@example.com"></label>
-          <label class="check-row"><input id="feedback-contact" type="checkbox"><span>Joye Life may contact me about this feedback</span></label>
-          <input id="feedback-company" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <button id="feedback-submit" class="primary-button" type="submit">Send feedback</button>
-          <div id="feedback-status" class="feedback-status" role="status" aria-live="polite"></div>
-        </form>
-        <aside class="feedback-side">
-          <span class="eyebrow">WHAT HELPS MOST</span>
-          <h3>Specific examples make the product better.</h3>
-          <p>For a bug, include what you clicked and what happened. For an idea, explain the problem you were trying to solve.</p>
-          <div class="feedback-promise"><strong>Early-access note</strong><span>Some features, including Ask Joye, may be limited while the product is being improved.</span></div>
-        </aside>
       </section>
     </section>
 

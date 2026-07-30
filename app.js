@@ -113,7 +113,7 @@ function setRecommendation(rec) {
   document.querySelector('#recommendation-source').textContent=rec.source||'Uses your saved priorities and plans.';
 }
 
-function renderAll(){renderTasks();renderMoney();renderMilestones();renderGoals();renderSummary();renderProfile();renderIdentity();renderCheckIn();renderWeeklyPlan();if(state.lastRecommendation)setRecommendation(state.lastRecommendation)}
+function renderAll(){renderTasks();renderMoney();renderMilestones();renderGoals();renderSummary();renderProfile();renderIdentity();renderCheckIn();renderWeeklyPlan();renderTodayBrief();renderSectionIntelligence();if(state.lastRecommendation)setRecommendation(state.lastRecommendation)}
 function renderIdentity(){const name=state.profile?.name||'Your';document.querySelector('#sidebar-name').textContent=state.profile?.name||'Your dashboard';document.querySelector('#avatar').textContent=(state.profile?.name||'JL').split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();document.querySelector('#view-title').textContent=state.profile?`Good ${new Date().getHours()<12?'morning':new Date().getHours()<18?'afternoon':'evening'}, ${name}.`:'Your next move.';document.querySelector('#career-roadmap-title').textContent=state.profile?.careerGoal?`${state.profile.careerGoal} roadmap`:'Career roadmap'}
 function renderSummary(){const done=state.tasks.filter(t=>t.done).length,pct=state.tasks.length?Math.round(done/state.tasks.length*100):0;document.querySelector('#progress-value').textContent=`${pct}%`;document.querySelector('#progress-bar').style.width=`${pct}%`;const f=state.money.paycheck-state.money.essentials-state.money.debt-state.money.savings-state.money.buffer;document.querySelector('#available-value').textContent=currency.format(Math.max(f,0));document.querySelector('#available-note').textContent=f>=0?'after plans and your safety buffer':'plan exceeds available paycheck';const completed=state.milestones.filter(m=>m.done).length;document.querySelector('#career-value').textContent=`${completed}/${state.milestones.length}`}
 function renderTasks(){const list=document.querySelector('#task-list');list.innerHTML='';document.querySelector('#empty-tasks').hidden=state.tasks.length>0;state.tasks.forEach(task=>{const row=document.createElement('div');row.className=`app-task ${task.done?'done':''}`;row.innerHTML=`<label><input type="checkbox" ${task.done?'checked':''}><span><strong>${esc(task.title)}</strong><small>${esc(task.area)} · ${Number(task.minutes||30)} min${task.due?` · due ${new Date(task.due+'T12:00:00').toLocaleDateString()}`:''}</small></span></label><button aria-label="Delete priority">×</button>`;row.querySelector('input').onchange=e=>{task.done=e.target.checked;save();renderAll();requestRecommendation()};row.querySelector('button').onclick=()=>{state.tasks=state.tasks.filter(t=>t.id!==task.id);save();renderAll();requestRecommendation()};list.appendChild(row)})}
@@ -140,11 +140,62 @@ function renderWeeklyPlan(){
 }
 
 
+function daysUntil(dateValue){
+  if(!dateValue)return null;
+  const today=new Date();today.setHours(0,0,0,0);
+  const target=new Date(dateValue+'T12:00:00');
+  return Math.ceil((target-today)/86400000);
+}
+function renderTodayBrief(){
+  const open=getRankedTasks();
+  const overdue=open.filter(t=>t.due&&daysUntil(t.due)<0);
+  const dueSoon=open.filter(t=>t.due&&daysUntil(t.due)>=0&&daysUntil(t.due)<=3);
+  const flexible=state.money.paycheck-state.money.essentials-state.money.debt-state.money.savings-state.money.buffer;
+  const goalsDue=state.goals.filter(g=>g.deadline&&daysUntil(g.deadline)<=14).sort((a,b)=>daysUntil(a.deadline)-daysUntil(b.deadline));
+  const completedToday=state.tasks.filter(t=>t.done).length;
+  const signals=[
+    {label:'Time available',value:`${Number(state.dailyCheckIn?.minutes||state.profile?.availableTime||60)} min`,tone:'neutral'},
+    {label:'Urgent items',value:String(overdue.length+dueSoon.length),tone:overdue.length?'alert':dueSoon.length?'watch':'good'},
+    {label:'Money buffer',value:currency.format(Math.max(flexible,0)),tone:flexible<0?'alert':flexible<state.money.buffer*.5?'watch':'good'},
+    {label:'Completed',value:String(completedToday),tone:completedToday?'good':'neutral'}
+  ];
+  document.querySelector('#today-signals').innerHTML=signals.map(s=>`<article class="signal ${s.tone}"><small>${esc(s.label)}</small><strong>${esc(s.value)}</strong></article>`).join('');
+  let copy='Your plan is balanced. Focus on the highest-ranked task that fits your energy and available time.';
+  if(overdue.length) copy=`${overdue.length} overdue ${overdue.length===1?'item needs':'items need'} attention. Start with “${overdue[0].title}” before adding new work.`;
+  else if(flexible<0) copy=`Your paycheck plan is short by ${currency.format(Math.abs(flexible))}. Rebalance the Money section before making optional spending decisions.`;
+  else if(dueSoon.length) copy=`“${dueSoon[0].title}” is due ${daysUntil(dueSoon[0].due)===0?'today':`in ${daysUntil(dueSoon[0].due)} day${daysUntil(dueSoon[0].due)===1?'':'s'}`}. It is the strongest time-sensitive signal in your plan.`;
+  else if(goalsDue.length) copy=`“${goalsDue[0].name}” has the nearest goal deadline. Reserve part of today's capacity for one measurable step.`;
+  document.querySelector('#today-brief-copy').innerHTML=`<p>${esc(copy)}</p><small>Updated from your latest check-in, tasks, goals, career plan, and paycheck plan.</small>`;
+  document.querySelector('#brief-freshness').textContent=`Updated ${new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date())}`;
+}
+function sectionCard(title,body,steps,question){
+  return `<article class="insight-card"><div><span class="eyebrow">JOYE INSIGHT</span><h3>${esc(title)}</h3><p>${esc(body)}</p></div><div class="insight-actions">${steps.map(x=>`<span>→ ${esc(x)}</span>`).join('')}</div><button class="secondary-button section-ask" data-section-question="${esc(question)}">Ask Joye about this</button></article>`;
+}
+function renderSectionIntelligence(){
+  const flexible=state.money.paycheck-state.money.essentials-state.money.debt-state.money.savings-state.money.buffer;
+  const moneyTitle=flexible<0?'Your plan needs rebalancing':flexible<state.money.buffer?'Your margin is getting tight':'Your paycheck plan has breathing room';
+  const moneyBody=flexible<0?`Planned allocations exceed the paycheck by ${currency.format(Math.abs(flexible))}.`:`You have ${currency.format(flexible)} after the safety buffer and planned allocations.`;
+  document.querySelector('#money-intelligence').innerHTML=sectionCard(moneyTitle,moneyBody,flexible<0?['Lower one flexible allocation','Protect essentials and minimum payments']:['Keep the buffer untouched','Decide intentionally where remaining money goes'],'Review my paycheck plan and tell me what to adjust first.');
+  const nextMilestone=state.milestones.find(m=>!m.done); const done=state.milestones.filter(m=>m.done).length;
+  document.querySelector('#career-intelligence').innerHTML=sectionCard(nextMilestone?'Your next proof point is clear':'Your career plan needs one concrete milestone',nextMilestone?`${done} milestones are complete. “${nextMilestone.title}” is the next visible step.`:'Add a milestone that creates evidence of readiness for your next role.',nextMilestone?['Block a short work session','Define what “done” looks like']:['Add a 30-day milestone','Choose a proof-of-skill output'],'Based on my career goal and milestones, what should I do next?');
+  const nearest=state.goals.filter(g=>g.deadline).sort((a,b)=>daysUntil(a.deadline)-daysUntil(b.deadline))[0];
+  document.querySelector('#goals-intelligence').innerHTML=sectionCard(nearest?`${nearest.name} needs the clearest next checkpoint`:'Give one goal a real deadline',nearest?`${Math.max(0,daysUntil(nearest.deadline))} days remain until the nearest saved deadline.`:'Goals become easier to prioritize when Joye Life can compare time remaining and progress.',nearest?['Update current progress','Choose the next measurable checkpoint']:['Add a deadline','Define a measurable target'],'Review my goals and identify the one that deserves attention first.');
+  const outcomes=(state.weeklyPlan?.outcomes||[]).filter(Boolean);
+  document.querySelector('#week-intelligence').innerHTML=sectionCard(outcomes.length===3?'Your week has a clear shape':`Your week has ${outcomes.length} of 3 outcomes`,outcomes.length?`Joye Life will use these outcomes to rank daily work and flag distractions.`:'Add a few outcomes so Today can distinguish important work from noise.',outcomes.length<3?['Add only meaningful outcomes','Keep each outcome finishable']:['Check today against the week','Remove work that does not support an outcome'],'Look at my weekly plan and tell me what is missing or unrealistic.');
+  document.querySelectorAll('.section-ask').forEach(button=>button.onclick=()=>{document.querySelectorAll('.nav-item,.view').forEach(el=>el.classList.remove('active'));document.querySelector('[data-view="today"]').classList.add('active');document.querySelector('#view-today').classList.add('active');document.querySelector('#coach-question').value=button.dataset.sectionQuestion;document.querySelector('#coach-question').focus();document.querySelector('.coach-card').scrollIntoView({behavior:'smooth',block:'center'});});
+}
+function updateCoachForSection(section){
+  const prompts={today:['What should I focus on today?','What can I realistically finish with my current energy?','What should I postpone?'],money:['What should I adjust in my paycheck plan?','Can I afford a nonessential purchase?','How can I protect my buffer?'],career:['What is my strongest next career move?','Which milestone should come first?','How can I create proof of my skills?'],goals:['Which goal needs attention first?','Is this deadline realistic?','What is the next measurable checkpoint?'],week:['Is my weekly plan realistic?','What should I remove from this week?','How should I divide these outcomes across the week?']};
+  const values=prompts[section]||prompts.today;
+  document.querySelectorAll('.coach-actions button').forEach((button,i)=>{button.dataset.question=values[i];button.textContent=values[i]});
+  document.querySelector('#coach-question').placeholder=values[0];
+}
+
 const modal=document.querySelector('#task-modal');document.querySelector('#open-task-modal').onclick=()=>modal.showModal();document.querySelector('#close-task-modal').onclick=()=>modal.close();document.querySelector('#task-form').onsubmit=e=>{e.preventDefault();const title=document.querySelector('#task-title').value.trim();if(!title)return;state.tasks.push({id:Date.now(),title,area:document.querySelector('#task-area').value,done:false,minutes:Number(document.querySelector('#task-minutes').value||30),importance:Number(document.querySelector('#task-importance').value||2),due:document.querySelector('#task-due').value});e.target.reset();modal.close();save();renderAll();requestRecommendation()};
 document.querySelector('#money-form').onsubmit=e=>{e.preventDefault();['paycheck','essentials','debt','savings','buffer'].forEach(id=>state.money[id]=Number(document.querySelector(`#${id}`).value||0));save();renderAll();requestRecommendation('Can I afford a nonessential purchase?')};
 document.querySelector('#add-milestone').onclick=()=>{const title=prompt('Milestone name');if(title?.trim()){state.milestones.push({id:Date.now(),title:title.trim(),done:false});save();renderAll();requestRecommendation()}};
 document.querySelector('#goal-form').onsubmit=e=>{e.preventDefault();state.goals.push({id:Date.now(),name:document.querySelector('#goal-name').value.trim(),current:Number(document.querySelector('#goal-current').value),target:Number(document.querySelector('#goal-target').value),deadline:document.querySelector('#goal-deadline').value});e.target.reset();save();renderAll();requestRecommendation()};
-document.querySelectorAll('.nav-item').forEach(button=>button.onclick=()=>{document.querySelectorAll('.nav-item,.view').forEach(el=>el.classList.remove('active'));button.classList.add('active');document.querySelector(`#view-${button.dataset.view}`).classList.add('active')});
+document.querySelectorAll('.nav-item').forEach(button=>button.onclick=()=>{document.querySelectorAll('.nav-item,.view').forEach(el=>el.classList.remove('active'));button.classList.add('active');document.querySelector(`#view-${button.dataset.view}`).classList.add('active');updateCoachForSection(button.dataset.view)});
 document.querySelector('#checkin-form').onsubmit=e=>{e.preventDefault();state.dailyCheckIn={minutes:Number(document.querySelector('#today-minutes').value),energy:document.querySelector('#today-energy').value,date:new Date().toISOString().slice(0,10)};save();renderAll();requestRecommendation()};
 document.querySelector('#weekly-form').onsubmit=e=>{e.preventDefault();state.weeklyPlan={outcomes:[1,2,3].map(i=>document.querySelector(`#week-outcome-${i}`).value.trim()),avoid:document.querySelector('#week-avoid').value.trim(),notes:document.querySelector('#week-notes').value.trim()};save();renderWeeklyPlan();requestRecommendation()};
 function renderCoachAnswer(data) {
